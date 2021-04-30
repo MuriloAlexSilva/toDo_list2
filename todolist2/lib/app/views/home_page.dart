@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -6,15 +8,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List _newTarefa = [];
-  TextEditingController _tarefas = TextEditingController();
+  List _tarefas = [];
+  TextEditingController _tarefaController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.blueAccent,
-        title: Text('Lista de Tarefas !!'),
+        title: Text('Lista de Tarefas'),
+        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -22,42 +25,42 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 1, bottom: 1),
+                  padding: const EdgeInsets.only(left: 17, top: 1, bottom: 1),
                   child: TextField(
-                    controller: _tarefas,
-                    decoration:
-                        InputDecoration(labelText: 'Escreva sua Tarefa'),
+                    controller: _tarefaController,
+                    decoration: InputDecoration(labelText: 'Digite a Tarefa'),
                   ),
                 ),
               ),
               TextButton(
                 onPressed: () {
                   setState(() {
-                    final tarefa = _tarefas.text;
-                    _newTarefa.add(tarefa);
-                    _tarefas.clear();
+                    final newTarefa = _tarefaController.text;
+                    _tarefas.add(newTarefa);
+                    _tarefaController.clear();
                   });
                 },
                 child: Container(
                   alignment: Alignment.center,
-                  width: 70,
-                  height: 40,
-                  child: Text(
-                    "ADD",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
                   color: Colors.blueAccent,
+                  child: Text(
+                    'ADD',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  height: 40,
+                  width: 70,
                 ),
               ),
             ],
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _newTarefa.length,
+              itemCount: _tarefas.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 10),
-                  child: Text(_newTarefa[index]),
+                  padding: const EdgeInsets.only(left: 17, top: 5),
+                  child: Text(_tarefas[index]),
                 );
               },
             ),
