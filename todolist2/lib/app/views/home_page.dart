@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,9 +11,31 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _readData().then((data) {
+      setState(() {
+        _tarefas = jsonDecode(data);
+      });
+    });
+  }
+
   List _tarefas = [];
   TextEditingController _tarefaController = TextEditingController();
+  void _addToDo() {
+    setState(() {
+      Map<String, dynamic> _newToDo = Map();
+      _newToDo["title"] = _tarefaController.text;
+      _tarefaController.clear();
+      _newToDo["ok"] = false;
+      _tarefas.add(_newToDo);
+      _saveData();
+    });
+  }
 
+  Map<String, dynamic> _lastRemoved = Map();
+  int _lastRemovedPos;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,13 +58,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  setState(() {
-                    final newTarefa = _tarefaController.text;
-                    _tarefas.add(newTarefa);
-                    _tarefaController.clear();
-                  });
-                },
+                onPressed: _addToDo,
                 child: Container(
                   alignment: Alignment.center,
                   color: Colors.blueAccent,
@@ -59,11 +76,54 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: ListView.builder(
               itemCount: _tarefas.length,
+              padding: EdgeInsets.only(top: 5),
               itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 17, top: 5),
-                  child: Text(_tarefas[index]),
-                );
+                return Dismissible(
+                    onDismissed: (direction) {
+                      setState(() {
+                        _lastRemoved = Map.from(_tarefas[index]);
+                        _lastRemovedPos = index;
+                        _tarefas.removeAt(index);
+                        _saveData();
+                        final snack = SnackBar(
+                          duration: Duration(seconds: 5),
+                          content: Text(
+                              "Tarefa \"${_lastRemoved["title"]}\" removida!!"),
+                          action: SnackBarAction(
+                            onPressed: () {
+                              setState(() {
+                                _tarefas.insert(_lastRemovedPos, _lastRemoved);
+                                _saveData();
+                              });
+                            },
+                            label: "Desfazer",
+                          ),
+                        );
+                        Scaffold.of(context).removeCurrentSnackBar();
+                        Scaffold.of(context).showSnackBar(snack);
+                      });
+                    },
+                    direction: DismissDirection.startToEnd,
+                    key: Key(Random().toString()),
+                    background: Container(
+                      color: Colors.red,
+                      child: Icon(Icons.delete, color: Colors.white),
+                      alignment: Alignment(-0.9, 0.0),
+                    ),
+                    child: CheckboxListTile(
+                      onChanged: (c) {
+                        setState(() {
+                          _tarefas[index]["ok"] = c;
+                          _saveData();
+                        });
+                      },
+                      title: Text(_tarefas[index]["title"]),
+                      secondary: CircleAvatar(
+                        child: Icon(
+                            _tarefas[index]["ok"] ? Icons.check : Icons.error),
+                      ),
+                      value: _tarefas[index]["ok"],
+                    ));
               },
             ),
           )
