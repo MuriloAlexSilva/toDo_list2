@@ -22,20 +22,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   List _tarefas = [];
+
   TextEditingController _tarefaController = TextEditingController();
+
   void _addToDo() {
     setState(() {
-      Map<String, dynamic> _newToDo = Map();
-      _newToDo["title"] = _tarefaController.text;
+      Map<String, dynamic> newToDo = Map();
+      newToDo["title"] = _tarefaController.text;
       _tarefaController.clear();
-      _newToDo["ok"] = false;
-      _tarefas.add(_newToDo);
+      newToDo["ok"] = false;
+      _tarefas.add(newToDo);
       _saveData();
     });
   }
 
-  Map<String, dynamic> _lastRemoved = Map();
-  int _lastRemovedPos;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,51 +79,34 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.only(top: 5),
               itemBuilder: (context, index) {
                 return Dismissible(
-                    onDismissed: (direction) {
+                  background: Container(
+                    color: Colors.red,
+                    child: Align(
+                      alignment: Alignment(-0.9, 0.0),
+                      child: Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  direction: DismissDirection.startToEnd,
+                  key: Key(Random().toString()),
+                  child: CheckboxListTile(
+                    onChanged: (check) {
                       setState(() {
-                        _lastRemoved = Map.from(_tarefas[index]);
-                        _lastRemovedPos = index;
-                        _tarefas.removeAt(index);
+                        _tarefas[index]["ok"] = check;
                         _saveData();
-                        final snack = SnackBar(
-                          duration: Duration(seconds: 5),
-                          content: Text(
-                              "Tarefa \"${_lastRemoved["title"]}\" removida!!"),
-                          action: SnackBarAction(
-                            onPressed: () {
-                              setState(() {
-                                _tarefas.insert(_lastRemovedPos, _lastRemoved);
-                                _saveData();
-                              });
-                            },
-                            label: "Desfazer",
-                          ),
-                        );
-                        Scaffold.of(context).removeCurrentSnackBar();
-                        Scaffold.of(context).showSnackBar(snack);
                       });
                     },
-                    direction: DismissDirection.startToEnd,
+                    value: _tarefas[index]["ok"],
                     key: Key(Random().toString()),
-                    background: Container(
-                      color: Colors.red,
-                      child: Icon(Icons.delete, color: Colors.white),
-                      alignment: Alignment(-0.9, 0.0),
+                    secondary: CircleAvatar(
+                      child: Icon(
+                          _tarefas[index]["ok"] ? Icons.check : Icons.error),
                     ),
-                    child: CheckboxListTile(
-                      onChanged: (c) {
-                        setState(() {
-                          _tarefas[index]["ok"] = c;
-                          _saveData();
-                        });
-                      },
-                      title: Text(_tarefas[index]["title"]),
-                      secondary: CircleAvatar(
-                        child: Icon(
-                            _tarefas[index]["ok"] ? Icons.check : Icons.error),
-                      ),
-                      value: _tarefas[index]["ok"],
-                    ));
+                    title: Text(_tarefas[index]["title"]),
+                  ),
+                );
               },
             ),
           )
